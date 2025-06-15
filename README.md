@@ -1,4 +1,4 @@
-# Repository-6-ai4u-enhanced-data-security
+# Repository-6-Lumi-enhanced-data-security
 
 Work packet #6 Enhanced Data Security
 
