@@ -119,7 +119,7 @@ class GraphBuilder:
                     self._add_user_node_to_interest_graph(db, user_id, interests)
             
             # Create edges between users with similar interests
-            self._create_interest_edges(user_interests)
+            self._create_interest_edges(dict(user_interests))
         
         logger.info(f"Built interest graph with {self.interest_graph.number_of_nodes()} nodes and {self.interest_graph.number_of_edges()} edges")
         return self.interest_graph

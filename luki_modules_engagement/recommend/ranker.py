@@ -78,7 +78,7 @@ class RecommendationRanker:
         # Sort by final score
         scored_candidates.sort(key=lambda x: x['final_score'], reverse=True)
         
-        logger.info(f"Ranked recommendations with scores: {[c['final_score']:.3f for c in scored_candidates[:5]]}")
+        logger.info(f"Ranked recommendations with scores: {[round(c['final_score'], 3) for c in scored_candidates[:5]]}")
         return scored_candidates
     
     def rank_event_recommendations(self, user_id: str, events: List[Tuple[Dict[str, Any], float]]) -> List[Dict[str, Any]]:
@@ -127,7 +127,7 @@ class RecommendationRanker:
         # Sort by final score
         scored_events.sort(key=lambda x: x['final_score'], reverse=True)
         
-        logger.info(f"Ranked event recommendations with scores: {[e['final_score']:.3f for e in scored_events[:5]]}")
+        logger.info(f"Ranked event recommendations with scores: {[round(e['final_score'], 3) for e in scored_events[:5]]}")
         return scored_events
     
     def personalize_ranking(self, user_id: str, recommendations: List[Dict[str, Any]]) -> List[Dict[str, Any]]:

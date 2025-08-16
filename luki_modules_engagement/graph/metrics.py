@@ -279,7 +279,7 @@ class GraphMetrics:
                 'clustering': clustering,
                 'efficiency': efficiency,
                 'num_components': nx.number_connected_components(graph),
-                'average_degree': np.mean([d for n, d in graph.degree()]) if graph.number_of_edges() > 0 else 0.0
+                'average_degree': (2 * graph.number_of_edges() / graph.number_of_nodes()) if graph.number_of_nodes() > 0 else 0.0
             }
             
         except Exception as e:

@@ -158,8 +158,12 @@ class GraphStore:
         if format == 'json':
             return self._import_from_json(data)
         elif format == 'gexf':
+            if not isinstance(data, str):
+                raise ValueError("GEXF format requires string data")
             return self._import_from_gexf(data)
         elif format == 'graphml':
+            if not isinstance(data, str):
+                raise ValueError("GraphML format requires string data")
             return self._import_from_graphml(data)
         else:
             raise ValueError(f"Unsupported import format: {format}")

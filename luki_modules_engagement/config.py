@@ -24,9 +24,9 @@ class EngagementConfig(BaseSettings):
     )
     
     # Interaction tracking settings
-    track_interactions: bool = Field(
+    enable_interaction_tracking: bool = Field(
         default=True,
-        alias="ENGAGEMENT_TRACK_INTERACTIONS",
+        alias="ENGAGEMENT_ENABLE_INTERACTION_TRACKING",
         description="Enable interaction tracking"
     )
     

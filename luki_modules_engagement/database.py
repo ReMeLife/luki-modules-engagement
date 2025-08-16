@@ -61,6 +61,8 @@ class DatabaseManager:
     @contextmanager
     def get_session(self) -> Generator[Session, None, None]:
         """Get a database session with automatic cleanup"""
+        if self.SessionLocal is None:
+            raise RuntimeError("Database not initialized. Call initialize() first.")
         session = self.SessionLocal()
         try:
             yield session
@@ -73,6 +75,8 @@ class DatabaseManager:
     
     def get_session_sync(self) -> Session:
         """Get a database session (manual management)"""
+        if self.SessionLocal is None:
+            raise RuntimeError("Database not initialized. Call initialize() first.")
         return self.SessionLocal()
 
 

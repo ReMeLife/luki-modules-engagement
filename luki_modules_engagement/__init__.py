@@ -16,11 +16,11 @@ from .recommend import InterestMatcher, RecommendationRanker, RecommendationExpl
 # Interface layer
 from .interfaces import EngagementAgentTools, EngagementAPI
 
-# Legacy components (for backward compatibility)
-from .interactions import InteractionTracker
-from .metrics import EngagementMetrics
-from .feedback import FeedbackCollector
-from .social_graph import SocialGraphAnalyzer
+# Legacy components (for backward compatibility) - commented out until implemented
+# from .interactions import InteractionTracker
+# from .metrics import EngagementMetrics
+# from .feedback import FeedbackCollector
+# from .social_graph import SocialGraphAnalyzer
 
 __version__ = "1.0.0"
 
@@ -48,9 +48,9 @@ __all__ = [
     "EngagementAgentTools",
     "EngagementAPI",
     
-    # Legacy components
-    "InteractionTracker", 
-    "EngagementMetrics",
-    "FeedbackCollector",
-    "SocialGraphAnalyzer"
+    # Legacy components - commented out until implemented
+    # "InteractionTracker", 
+    # "EngagementMetrics",
+    # "FeedbackCollector",
+    # "SocialGraphAnalyzer"
 ]
