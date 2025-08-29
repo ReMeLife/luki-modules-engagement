@@ -3,6 +3,12 @@
 
 ---
 
+## License
+
+This project is licensed under the [Apache 2.0 License with ReMeLife custom clauses]
+
+---
+
 ## 1. Overview
 This module powers **ReMeComm**: AI-driven community engagement inside the ReMeLife ecosystem.  
 It builds and queries a **social/interest graph** to connect members with events, groups, products, and peers that match their ELR® profiles and current needs.
