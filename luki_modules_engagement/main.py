@@ -3,6 +3,7 @@ FastAPI application for LUKi Engagement Module
 """
 
 import os
+from datetime import datetime
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -10,6 +11,8 @@ from typing import List, Optional, Dict, Any
 import logging
 
 from .config import EngagementConfig, get_config
+from .database import get_db_session
+from .models import UserInteraction
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -130,13 +133,34 @@ async def track_interaction(request: InteractionRequest):
     """Track a user interaction"""
     try:
         # Placeholder implementation
-        interaction_id = f"int_{request.user_id}_{hash(request.interaction_type) % 10000}"
-        
+        db = get_db_session()
+        try:
+            if request.timestamp:
+                try:
+                    interaction_time = datetime.fromisoformat(request.timestamp)
+                except ValueError:
+                    interaction_time = datetime.utcnow()
+            else:
+                interaction_time = datetime.utcnow()
+            session_id = f"session_{request.user_id}"
+            interaction = UserInteraction(
+                user_id=request.user_id,
+                session_id=session_id,
+                interaction_type=request.interaction_type,
+                interaction_data=request.content or {},
+                timestamp=interaction_time,
+                context={}
+            )
+            db.add(interaction)
+            db.commit()
+            db.refresh(interaction)
+        finally:
+            db.close()
         return InteractionResponse(
-            interaction_id=interaction_id,
+            interaction_id=str(interaction.id),
             user_id=request.user_id,
             status="tracked",
-            timestamp="2024-01-01T00:00:00Z"  # Use actual timestamp
+            timestamp=interaction_time.isoformat()
         )
     except Exception as e:
         logger.error(f"Error tracking interaction: {e}")
