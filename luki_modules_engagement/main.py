@@ -7,12 +7,13 @@ from datetime import datetime, timedelta
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, cast
 import logging
 
 from .config import EngagementConfig, get_config
 from .database import get_db_session
 from .models import UserInteraction
+from .recommend.matcher import InterestMatcher
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -186,7 +187,12 @@ async def get_engagement_metrics(user_id: str):
                 .all()
             )
             interaction_count = len(interactions)
-            last_active_dt = max((i.timestamp for i in interactions), default=None)
+            timestamp_values = [
+                cast(datetime, i.timestamp)
+                for i in interactions
+                if i.timestamp is not None
+            ]
+            last_active_dt = max(timestamp_values) if timestamp_values else None
             # Simple engagement score: combine volume and recency
             if interaction_count == 0:
                 engagement_score = 0.0
@@ -222,18 +228,27 @@ async def get_engagement_metrics(user_id: str):
 async def get_social_recommendations(user_id: str, limit: int = 5):
     """Get social engagement recommendations for a user"""
     try:
-        # Placeholder implementation
-        recommendations = [
+        if recommendation_ranker is None:
+            raise RuntimeError("Recommendation engine not available")
+        matcher = InterestMatcher()
+        # Find users with similar interests (overfetch, then rank and trim)
+        similar_users = matcher.find_similar_users(user_id, limit=limit * 2)
+        candidates = [
             {
-                "id": "rec_1",
-                "type": "social_activity",
-                "title": "Join Community Discussion",
-                "description": "Participate in today's wellness discussion",
-                "engagement_score": 0.8
+                "user_id": similar_user_id,
+                "similarity_score": similarity,
+                "recommendation_type": "user_connection",
             }
+            for similar_user_id, similarity in similar_users
         ]
-        
-        return {"user_id": user_id, "recommendations": recommendations[:limit]}
+        if not candidates:
+            return {"user_id": user_id, "recommendations": []}
+        ranked = recommendation_ranker.rank_user_recommendations(user_id, candidates)
+        # Limit final recommendations and provide a clean response structure
+        return {
+            "user_id": user_id,
+            "recommendations": ranked[:limit],
+        }
     except Exception as e:
         logger.error(f"Error generating recommendations: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate recommendations")
@@ -243,16 +258,33 @@ async def get_social_recommendations(user_id: str, limit: int = 5):
 async def get_user_connections(user_id: str):
     """Get user's social graph connections"""
     try:
-        # Placeholder implementation
-        connections = [
-            {
-                "user_id": "user_123",
-                "connection_type": "similar_interests",
-                "strength": 0.7
+        if not graph_builder:
+            raise RuntimeError("Graph builder not available")
+        # Build social graph focused on this user
+        graph = graph_builder.build_social_graph([user_id])
+        connections = []
+        node_info = None
+        if user_id in graph:
+            node_attrs = graph.nodes[user_id]
+            node_info = {
+                "user_id": user_id,
+                "total_interactions": node_attrs.get("total_interactions", 0),
+                "engagement_score": node_attrs.get("engagement_score", 0.0),
+                "last_activity": node_attrs.get("last_activity").isoformat() if node_attrs.get("last_activity") else None,
             }
-        ]
-        
-        return {"user_id": user_id, "connections": connections}
+            for neighbor in graph.neighbors(user_id):
+                edge_data = graph.get_edge_data(user_id, neighbor) or {}
+                connections.append({
+                    "user_id": neighbor,
+                    "connection_type": edge_data.get("connection_type", "inferred"),
+                    "strength": edge_data.get("strength", 0.0),
+                    "last_interaction": edge_data.get("last_interaction").isoformat() if edge_data.get("last_interaction") else None,
+                })
+        return {
+            "user_id": user_id,
+            "node": node_info,
+            "connections": connections,
+        }
     except Exception as e:
         logger.error(f"Error fetching user connections: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch user connections")
