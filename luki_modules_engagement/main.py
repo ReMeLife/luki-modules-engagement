@@ -3,7 +3,7 @@ FastAPI application for LUKi Engagement Module
 """
 
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -171,12 +171,47 @@ async def track_interaction(request: InteractionRequest):
 async def get_engagement_metrics(user_id: str):
     """Get engagement metrics for a user"""
     try:
-        # Placeholder implementation
+        db = get_db_session()
+        try:
+            # Look back over recent interactions (last 30 days)
+            now = datetime.utcnow()
+            lookback_start = now - timedelta(days=30)
+            from .models import UserInteraction as _UserInteraction
+            interactions = (
+                db.query(_UserInteraction)
+                .filter(
+                    _UserInteraction.user_id == user_id,
+                    _UserInteraction.timestamp >= lookback_start,
+                )
+                .all()
+            )
+            interaction_count = len(interactions)
+            last_active_dt = max((i.timestamp for i in interactions), default=None)
+            # Simple engagement score: combine volume and recency
+            if interaction_count == 0:
+                engagement_score = 0.0
+                last_active_str = None
+            else:
+                last_active_str = last_active_dt.isoformat() if last_active_dt else None
+                # Volume factor saturates at 50 interactions
+                volume_factor = min(1.0, interaction_count / 50.0)
+                # Recency factor: 1.0 if within 1 day, decays linearly to 0 over 30 days
+                if last_active_dt:
+                    days_since_last = max(
+                        0.0,
+                        (now - last_active_dt).total_seconds() / 86400.0,
+                    )
+                    recency_factor = max(0.0, 1.0 - days_since_last / 30.0)
+                else:
+                    recency_factor = 0.0
+                engagement_score = round(0.7 * volume_factor + 0.3 * recency_factor, 3)
+        finally:
+            db.close()
         return EngagementMetricsResponse(
             user_id=user_id,
-            engagement_score=0.75,  # Mock score
-            interaction_count=42,   # Mock count
-            last_active="2024-01-01T00:00:00Z"
+            engagement_score=engagement_score,
+            interaction_count=interaction_count,
+            last_active=last_active_str,
         )
     except Exception as e:
         logger.error(f"Error fetching engagement metrics: {e}")
