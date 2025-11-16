@@ -266,19 +266,29 @@ async def get_user_connections(user_id: str):
         node_info = None
         if user_id in graph:
             node_attrs = graph.nodes[user_id]
+            last_activity_value = node_attrs.get("last_activity")
+            if isinstance(last_activity_value, datetime):
+                last_activity_str = last_activity_value.isoformat()
+            else:
+                last_activity_str = None
             node_info = {
                 "user_id": user_id,
                 "total_interactions": node_attrs.get("total_interactions", 0),
                 "engagement_score": node_attrs.get("engagement_score", 0.0),
-                "last_activity": node_attrs.get("last_activity").isoformat() if node_attrs.get("last_activity") else None,
+                "last_activity": last_activity_str,
             }
             for neighbor in graph.neighbors(user_id):
                 edge_data = graph.get_edge_data(user_id, neighbor) or {}
+                last_interaction_value = edge_data.get("last_interaction")
+                if isinstance(last_interaction_value, datetime):
+                    last_interaction_str = last_interaction_value.isoformat()
+                else:
+                    last_interaction_str = None
                 connections.append({
                     "user_id": neighbor,
                     "connection_type": edge_data.get("connection_type", "inferred"),
                     "strength": edge_data.get("strength", 0.0),
-                    "last_interaction": edge_data.get("last_interaction").isoformat() if edge_data.get("last_interaction") else None,
+                    "last_interaction": last_interaction_str,
                 })
         return {
             "user_id": user_id,
