@@ -75,6 +75,18 @@ class EngagementConfig(BaseSettings):
         description="Similarity threshold for social connections"
     )
     
+    # Security & privacy
+    security_service_url: str = Field(
+        default="http://localhost:8103",
+        alias="ENGAGEMENT_SECURITY_SERVICE_URL",
+        description="URL for LUKi Security & Privacy Service"
+    )
+    respect_consent_flags: bool = Field(
+        default=True,
+        alias="ENGAGEMENT_RESPECT_CONSENT_FLAGS",
+        description="Respect user consent flags for secondary uses such as social recommendations and engagement nudges"
+    )
+    
     # API settings
     api_host: str = Field(
         default="0.0.0.0",

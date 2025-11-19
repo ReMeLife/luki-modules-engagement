@@ -10,6 +10,8 @@ from pydantic import BaseModel
 from typing import List, Optional, Dict, Any, cast
 import logging
 
+import httpx
+
 from .config import EngagementConfig, get_config
 from .database import get_db_session
 from .models import UserInteraction
@@ -28,6 +30,80 @@ app = FastAPI(
     description="Social engagement and recommendation system for LUKi",
     version="1.0.0"
 )
+
+def _consent_checks_enabled() -> bool:
+    """Return True if consent/policy checks should be applied for secondary uses."""
+    return bool(getattr(config, "respect_consent_flags", True))
+
+
+async def _enforce_engagement_policy(
+    user_id: str,
+    requested_scopes: Optional[List[str]] = None,
+    context: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Call security service policy/enforce for engagement-related secondary uses.
+
+    Defaults to requesting analytics and personalization scopes. When consent
+    checks are disabled via configuration, this returns allowed=True without
+    making an external call.
+    """
+    if not _consent_checks_enabled():
+        return {"allowed": True, "reason": "consent_checks_disabled"}
+
+    scopes = requested_scopes or ["analytics", "personalization"]
+
+    payload: Dict[str, Any] = {
+        "user_id": user_id,
+        "requester_role": "engagement_service",
+        "requested_scopes": scopes,
+    }
+    if context:
+        payload["context"] = context
+
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.post(
+                f"{config.security_service_url}/policy/enforce",
+                json=payload,
+            )
+
+        try:
+            raw = response.json()
+        except ValueError:
+            raw = {"detail": response.text}
+
+        data: Dict[str, Any]
+        if isinstance(raw, dict):
+            data = raw
+        else:
+            data = {"detail": raw}
+
+        if response.status_code == 200:
+            return {
+                "allowed": bool(data.get("allowed", True)),
+                "scopes_checked": data.get("scopes_checked", []),
+                "reason": data.get("reason", "consent_valid"),
+                "detail": data.get("detail"),
+            }
+
+        return {
+            "allowed": False,
+            "error": data.get("error", "policy_denied"),
+            "detail": data.get("detail"),
+            "status_code": response.status_code,
+        }
+    except Exception as exc:  # pragma: no cover - defensive guard
+        logger.error(
+            "Engagement policy enforcement request failed",
+            user_id=user_id,
+            error=str(exc),
+        )
+        return {
+            "allowed": False,
+            "error": "policy_request_failed",
+            "detail": str(exc),
+        }
+
 
 # Add CORS middleware
 app.add_middleware(
@@ -228,6 +304,24 @@ async def get_engagement_metrics(user_id: str):
 async def get_social_recommendations(user_id: str, limit: int = 5):
     """Get social engagement recommendations for a user"""
     try:
+        policy = await _enforce_engagement_policy(
+            user_id=user_id,
+            context={"endpoint": "recommendations", "limit": limit},
+        )
+        if not policy.get("allowed", True):
+            logger.info(
+                "Social recommendations blocked by policy",
+                user_id=user_id,
+                policy_error=policy.get("error"),
+            )
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "error": policy.get("error", "consent_denied"),
+                    "policy": policy,
+                },
+            )
+
         if recommendation_ranker is None:
             raise RuntimeError("Recommendation engine not available")
         matcher = InterestMatcher()
@@ -258,6 +352,24 @@ async def get_social_recommendations(user_id: str, limit: int = 5):
 async def get_user_connections(user_id: str):
     """Get user's social graph connections"""
     try:
+        policy = await _enforce_engagement_policy(
+            user_id=user_id,
+            context={"endpoint": "graph"},
+        )
+        if not policy.get("allowed", True):
+            logger.info(
+                "User graph request blocked by policy",
+                user_id=user_id,
+                policy_error=policy.get("error"),
+            )
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "error": policy.get("error", "consent_denied"),
+                    "policy": policy,
+                },
+            )
+
         if not graph_builder:
             raise RuntimeError("Graph builder not available")
         # Build social graph focused on this user
