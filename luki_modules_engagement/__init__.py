@@ -14,7 +14,11 @@ from .graph import GraphBuilder, GraphMetrics, GraphStore
 from .recommend import InterestMatcher, RecommendationRanker, RecommendationExplainer
 
 # Interface layer
-from .interfaces import EngagementAgentTools, EngagementAPI
+try:
+    from .interfaces import EngagementAgentTools, EngagementAPI
+except ModuleNotFoundError:
+    EngagementAgentTools = None
+    EngagementAPI = None
 
 # Legacy components (for backward compatibility) - commented out until implemented
 # from .interactions import InteractionTracker
