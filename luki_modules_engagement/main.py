@@ -299,7 +299,7 @@ async def get_engagement_metrics(user_id: str):
         logger.error(f"Error fetching engagement metrics: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch engagement metrics")
 
-# Get social recommendations
+"""Get social recommendations"""
 @app.get("/recommendations/{user_id}")
 async def get_social_recommendations(user_id: str, limit: int = 5):
     """Get social engagement recommendations for a user"""
@@ -343,11 +343,14 @@ async def get_social_recommendations(user_id: str, limit: int = 5):
             "user_id": user_id,
             "recommendations": ranked[:limit],
         }
+    except HTTPException:
+        # Preserve explicit 4xx responses from policy checks
+        raise
     except Exception as e:
         logger.error(f"Error generating recommendations: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate recommendations")
 
-# Get user graph connections
+"""Get user graph connections"""
 @app.get("/graph/{user_id}")
 async def get_user_connections(user_id: str):
     """Get user's social graph connections"""
@@ -407,6 +410,9 @@ async def get_user_connections(user_id: str):
             "node": node_info,
             "connections": connections,
         }
+    except HTTPException:
+        # Preserve explicit 4xx responses from policy checks
+        raise
     except Exception as e:
         logger.error(f"Error fetching user connections: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch user connections")
