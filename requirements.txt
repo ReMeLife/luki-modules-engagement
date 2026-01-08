@@ -2,22 +2,22 @@
 fastapi==0.104.1
 uvicorn==0.24.0
 sqlalchemy==2.0.23
-pydantic==2.5.0
-pydantic-settings==2.1.0
+pydantic>=2.7.4,<3.0.0
+pydantic-settings>=2.3.0
 python-multipart==0.0.6
 httpx==0.25.2
 python-dotenv==1.0.0
 
 # Data processing and analytics
 pandas==2.1.4
-numpy==1.25.2
+numpy>=1.26.0
 scipy==1.11.4
 
 # Graph analytics for social features
 networkx==3.2.1
 
 # HTTP client for API calls
-aiohttp==3.9.1
+aiohttp>=3.9.3
 
 # Async support
 asyncio-mqtt==0.16.1
