@@ -8,7 +8,6 @@ from datetime import datetime, timedelta
 import math
 
 import numpy as np
-from sqlalchemy.orm import Session
 
 from ..config import EngagementConfig
 from ..database import get_db_session
@@ -257,7 +256,7 @@ class RecommendationRanker:
         if isinstance(event_time, str):
             try:
                 event_time = datetime.fromisoformat(event_time.replace('Z', '+00:00'))
-            except:
+            except (ValueError, TypeError):
                 return 0.5
         
         # Check if event time aligns with user's preferred times
