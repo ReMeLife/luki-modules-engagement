@@ -2,9 +2,8 @@
 Graph metrics and analysis for centrality, community detection, and engagement scoring.
 """
 
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Optional
 import logging
-from collections import defaultdict
 
 import networkx as nx
 import numpy as np
@@ -12,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from ..config import EngagementConfig
 from ..database import get_db_session
-from ..models import EngagementMetric, UserProfile
+from ..models import EngagementMetric
 
 logger = logging.getLogger(__name__)
 
@@ -302,18 +301,17 @@ class GraphMetrics:
                     # Create or update metric record
                     existing_metric = db.query(EngagementMetric).filter(
                         EngagementMetric.user_id == user_id,
-                        EngagementMetric.metric_name == f"{metric_type}_{metric_name}"
+                        EngagementMetric.metric_type == f"{metric_type}_{metric_name}"
                     ).first()
-                    
+
                     if existing_metric:
                         existing_metric.metric_value = value
-                        existing_metric.calculated_at = db.execute("SELECT NOW()").scalar()
+                        existing_metric.calculation_timestamp = datetime.utcnow()
                     else:
                         new_metric = EngagementMetric(
                             user_id=user_id,
-                            metric_name=f"{metric_type}_{metric_name}",
+                            metric_type=f"{metric_type}_{metric_name}",
                             metric_value=value,
-                            metric_type=metric_type,
                             meta_data={'source': 'graph_analysis'}
                         )
                         db.add(new_metric)
