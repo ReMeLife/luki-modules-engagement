@@ -3,7 +3,7 @@ Graph building functionality for social-interest networks.
 Creates and updates social-interest graphs using NetworkX.
 """
 
-from typing import Dict, List, Any, Optional, Tuple, Set
+from typing import Dict, List, Any, Optional
 import logging
 from datetime import datetime, timedelta
 from collections import defaultdict
@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 from ..config import EngagementConfig
 from ..database import get_db_session
 from ..models import SocialConnection, UserInteraction, UserProfile
-from ..data.schemas import InteractionSchema, SocialConnectionSchema
+from ..data.schemas import InteractionSchema
 
 logger = logging.getLogger(__name__)
 

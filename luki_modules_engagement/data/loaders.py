@@ -5,16 +5,11 @@ Handles loading ELR slices, forum logs, and event feeds.
 
 from typing import Dict, List, Any, Optional, Iterator
 from datetime import datetime, timedelta
-import json
 import logging
-from pathlib import Path
-
-from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
 
 from ..config import EngagementConfig
 from ..database import get_db_session
-from ..models import UserInteraction, EngagementSession, UserProfile
+from ..models import UserInteraction, UserProfile
 from .schemas import UserEventSchema, InteractionSchema, FeedbackSchema
 
 logger = logging.getLogger(__name__)

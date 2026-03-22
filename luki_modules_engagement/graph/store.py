@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from ..config import EngagementConfig
 from ..database import get_db_session
-from ..models import SocialConnection, UserProfile
+from ..models import SocialConnection
 
 logger = logging.getLogger(__name__)
 

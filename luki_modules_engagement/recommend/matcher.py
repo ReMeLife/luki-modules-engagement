@@ -9,12 +9,10 @@ from collections import defaultdict
 
 import numpy as np
 import networkx as nx
-from sqlalchemy.orm import Session
-
 from ..config import EngagementConfig
 from ..database import get_db_session
-from ..models import UserInteraction, UserProfile, SocialConnection
-from ..data.schemas import UserEventSchema, InteractionSchema
+from ..models import UserInteraction, SocialConnection
+from ..data.schemas import UserEventSchema
 
 logger = logging.getLogger(__name__)
 

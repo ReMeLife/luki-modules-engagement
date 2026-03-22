@@ -6,7 +6,7 @@ from typing import Dict, List, Any, Optional
 import logging
 from datetime import datetime
 
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 from ..config import EngagementConfig
