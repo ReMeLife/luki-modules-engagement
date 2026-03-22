@@ -215,3 +215,10 @@ __marimo__/
 logs/
 .cache/
 .ipynb_checkpoints/
+*.db
+*.sqlite
+*.sqlite3
+.DS_Store
+
+# Railway deployment (local-only)
+.railwayignore

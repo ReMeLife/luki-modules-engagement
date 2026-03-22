@@ -1,4 +1,4 @@
-# Core dependencies
+# Core framework
 fastapi==0.104.1
 uvicorn==0.24.0
 sqlalchemy==2.0.23
@@ -8,37 +8,12 @@ python-multipart==0.0.6
 httpx==0.25.2
 python-dotenv==1.0.0
 
-# Data processing and analytics
-pandas==2.1.4
+# Data processing
 numpy>=1.26.0
-scipy==1.11.4
 
-# Graph analytics for social features
+# Graph analytics
 networkx==3.2.1
 
-# HTTP client for API calls
-aiohttp>=3.9.3
-
-# Async support
-asyncio-mqtt==0.16.1
-
-# Logging and monitoring
-structlog==23.2.0
-
-# LangChain (optional for MVP)
+# LangChain tools
 langchain>=0.1.7
 langchain-core>=0.1.7
-
-# Security
-cryptography>=42.0.0
-
-# Testing (optional for production)
-pytest==7.4.3
-pytest-asyncio==0.21.1
-pytest-mock==3.12.0
-
-# Development tools (optional for production)
-black==23.11.0
-isort==5.12.0
-flake8==6.1.0
-mypy==1.7.1
