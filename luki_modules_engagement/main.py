@@ -12,7 +12,7 @@ import logging
 
 import httpx
 
-from .config import EngagementConfig, get_config
+from .config import get_config
 from .database import get_db_session
 from .models import UserInteraction
 from .recommend.matcher import InterestMatcher
@@ -93,11 +93,7 @@ async def _enforce_engagement_policy(
             "status_code": response.status_code,
         }
     except Exception as exc:  # pragma: no cover - defensive guard
-        logger.error(
-            "Engagement policy enforcement request failed",
-            user_id=user_id,
-            error=str(exc),
-        )
+        logger.error(f"Engagement policy enforcement request failed user_id={user_id} error={exc}")
         return {
             "allowed": False,
             "error": "policy_request_failed",
@@ -108,8 +104,7 @@ async def _enforce_engagement_policy(
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
-    allow_credentials=True,
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -181,7 +176,6 @@ async def health_check():
     }
     
     config_info = {
-        "database_url": config.database_url,
         "interaction_tracking": config.enable_interaction_tracking,
         "api_port": config.api_port
     }
@@ -299,7 +293,6 @@ async def get_engagement_metrics(user_id: str):
         logger.error(f"Error fetching engagement metrics: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch engagement metrics")
 
-"""Get social recommendations"""
 @app.get("/recommendations/{user_id}")
 async def get_social_recommendations(user_id: str, limit: int = 5):
     """Get social engagement recommendations for a user"""
@@ -350,7 +343,6 @@ async def get_social_recommendations(user_id: str, limit: int = 5):
         logger.error(f"Error generating recommendations: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate recommendations")
 
-"""Get user graph connections"""
 @app.get("/graph/{user_id}")
 async def get_user_connections(user_id: str):
     """Get user's social graph connections"""
